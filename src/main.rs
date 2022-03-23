@@ -24,9 +24,8 @@ impl MessageType {
         match self {
             MessageType::Handshake => "[HANDSHAKE]",
             MessageType::Post => "[POST]",
-            MessageType::GetCount => "[GET COUNT]"
+            MessageType::GetCount => "[GET COUNT]",
         }
-        // todo!()
     }
 }
 
@@ -76,12 +75,19 @@ impl Client {
     fn open(&mut self, addr: &str, server: Server) -> CommsResult<()> {
         match self.connections.get(addr) {
             None => {
-                self.connections.insert(addr.to_string(), Connection::Open(server));
-                match self.send(addr, Message{msg_type: MessageType::Handshake, load: self.ip.clone()}) {
-                    _ => Ok(())
+                self.connections
+                    .insert(addr.to_string(), Connection::Open(server));
+                match self.send(
+                    addr, 
+                    Message {
+                        msg_type: MessageType::Handshake, 
+                        load: self.ip.clone(),
+                    }
+                ) {
+                    _ => Ok(()),
                 }
             },
-            _ => Err(CommsError::ConnectionExists(addr.to_string()))
+            _ => Err(CommsError::ConnectionExists(addr.to_string())),
         }
     }
 
@@ -94,19 +100,23 @@ impl Client {
             None => Err(CommsError::ConnectionNotFound(addr.to_string())),
             Some(Connection::Closed) => Err(CommsError::ConnectionClosed(addr.to_string())),
             Some(Connection::Open(_)) => {
-                let conn = self.connections.entry(addr.to_string()).or_insert(Connection::Closed);
+                let conn = self
+                    .connections
+                    .entry(addr.to_string())
+                    .or_insert(Connection::Closed);
                 match conn {
                     Connection::Open(server) => {
                         let ret = server.receive(msg);
                         match ret {
                             Err(CommsError::ServerLimitReached(_)) => {
-                                self.connections.insert(addr.to_string(), Connection::Closed);
+                                self.connections
+                                    .insert(addr.to_string(), Connection::Closed);
                                 ret
                             },
-                            _ => ret
+                            _ => ret,
                         }
                     },
-                    _ => Err(CommsError::ConnectionNotFound(addr.to_string()))
+                    _ => Err(CommsError::ConnectionNotFound(addr.to_string())),
                 }
             }
         }
@@ -120,7 +130,7 @@ impl Client {
         match conn {
             None => false,
             Some(Connection::Closed) => false,
-            _ => true
+            _ => true,
         }
     }
 
@@ -131,7 +141,7 @@ impl Client {
         for (_, conn) in &self.connections {
             match conn {
                 Connection::Closed => count = count + 1,
-                _ => ()
+                _ => (),
             }
         }
         count
@@ -160,7 +170,7 @@ impl Server {
             name,
             post_count: 0,
             limit,
-            connected_client: None
+            connected_client: None,
         }
     }
 
@@ -179,7 +189,7 @@ impl Server {
                 } else {
                     Err(CommsError::UnexpectedHandshake(self.name.clone()))
                 }
-            },
+            }
             MessageType::Post => {
                 if self.post_count < self.limit {
                     self.post_count = self.post_count + 1;
