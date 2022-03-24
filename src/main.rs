@@ -78,17 +78,16 @@ impl Client {
                 self.connections
                     .insert(addr.to_string(), Connection::Open(server));
                 match self.send(
-                    addr, 
+                    addr,
                     Message {
-                        msg_type: MessageType::Handshake, 
+                        msg_type: MessageType::Handshake,
                         load: self.ip.clone(),
                     }
                 ) {
                     Err(_) => Err(CommsError::ConnectionNotFound(addr.to_string())),
                     _ => Ok(()),
-
                 }
-            },
+            }
             _ => Err(CommsError::ConnectionExists(addr.to_string())),
         }
     }
@@ -114,10 +113,10 @@ impl Client {
                                 self.connections
                                     .insert(addr.to_string(), Connection::Closed);
                                 ret
-                            },
+                            }
                             _ => ret,
                         }
-                    },
+                    }
                     _ => Err(CommsError::ConnectionNotFound(addr.to_string())),
                 }
             }
@@ -137,7 +136,9 @@ impl Client {
     fn count_closed(&self) -> usize {
         let mut count = 0;
         for conn in self.connections.values() {
-            if let Connection::Closed = conn { count += 1};
+            if let Connection::Closed = conn {
+                count += 1
+            };
         }
         count
     }
@@ -192,7 +193,7 @@ impl Server {
                 } else {
                     Err(CommsError::ServerLimitReached(self.name.clone()))
                 }
-            },
+            }
             MessageType::GetCount => Ok(Response::GetCount(self.post_count)),
         }
     }
