@@ -82,7 +82,7 @@ impl Client {
                     Message {
                         msg_type: MessageType::Handshake,
                         load: self.ip.clone(),
-                    }
+                    },
                 ) {
                     Err(_) => Err(CommsError::ConnectionNotFound(addr.to_string())),
                     _ => Ok(()),
@@ -150,7 +150,6 @@ enum Response {
     PostReceived,
     GetCount(u32),
 }
-
 
 #[derive(Clone)]
 struct Server {
