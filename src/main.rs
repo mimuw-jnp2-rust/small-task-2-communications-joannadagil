@@ -84,7 +84,9 @@ impl Client {
                         load: self.ip.clone(),
                     }
                 ) {
+                    Err(_) => Err(CommsError::ConnectionNotFound(addr.to_string())),
                     _ => Ok(()),
+
                 }
             },
             _ => Err(CommsError::ConnectionExists(addr.to_string())),
@@ -127,22 +129,15 @@ impl Client {
     #[allow(dead_code)]
     fn is_open(&self, addr: &str) -> bool {
         let conn = self.connections.get(addr);
-        match conn {
-            None => false,
-            Some(Connection::Closed) => false,
-            _ => true,
-        }
+        !matches!(conn, None | Some(Connection::Closed))
     }
 
     // Returns the number of closed connections
     #[allow(dead_code)]
     fn count_closed(&self) -> usize {
         let mut count = 0;
-        for (_, conn) in &self.connections {
-            match conn {
-                Connection::Closed => count = count + 1,
-                _ => (),
-            }
+        for conn in self.connections.values() {
+            if let Connection::Closed = conn { count += 1};
         }
         count
     }
@@ -192,7 +187,7 @@ impl Server {
             }
             MessageType::Post => {
                 if self.post_count < self.limit {
-                    self.post_count = self.post_count + 1;
+                    self.post_count += 1;
                     Ok(Response::PostReceived)
                 } else {
                     Err(CommsError::ServerLimitReached(self.name.clone()))
